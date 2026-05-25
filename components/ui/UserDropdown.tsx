@@ -3,10 +3,50 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { logout } from "@/services/api/auth/logout";
+import { useRouter } from "next/navigation";
+import { me } from "@/services/api/auth/me";
+
+interface User {
+    id: number;
+    name: string;
+    email: string;
+}
+
 
 export default function UserDropdown() {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const data = await me();
+                setUser(data.data);
+                console.log(data);
+            } catch (error) {
+                console.log("Failed to fetch user", error);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            setLoading(true);
+            await logout();
+
+            router.push("/auth/login");
+            router.refresh();
+        } catch (error) {
+            console.log("Logout failed", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -32,7 +72,7 @@ export default function UserDropdown() {
             </div>
 
             <div className="_header_nav_dropdown">
-                <p className="_header_nav_para">Dylan Field</p>
+                <p className="_header_nav_para">{user?.name ?? "Loading..."}</p>
                 <button
                     type="button"
                     className="_header_nav_dropdown_btn _dropdown_toggle"
@@ -84,7 +124,7 @@ export default function UserDropdown() {
                             />
                         </div>
                         <div className="_nav_profile_dropdown_info_txt">
-                            <h4 className="_nav_dropdown_title">Dylan Field</h4>
+                            <h4 className="_nav_dropdown_title">{user?.name ?? "Loading..."}</h4>
                             <Link href="/profile" className="_nav_drop_profile">
                                 View Profile
                             </Link>
@@ -145,9 +185,18 @@ export default function UserDropdown() {
                         {/* Log Out */}
                         <li className="_nav_dropdown_list_item">
                             <Link
-                                href="/help"
+                                href="#"
                                 className="_nav_dropdown_link"
-                                onClick={() => setIsOpen(false)}
+                                onClick={async (e) => {
+                                    e.preventDefault(); // 🔥 prevent navigation
+                                    setIsOpen(false);
+
+                                    try {
+                                        await handleLogout(); // 🔥 your API call
+                                    } catch (err) {
+                                        console.log(err);
+                                    }
+                                }}
                             >
                                 <div className="_nav_drop_info">
                                     <span>
@@ -155,8 +204,10 @@ export default function UserDropdown() {
                                             <path stroke="#377DFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.667 18H2.889A1.889 1.889 0 011 16.111V2.89A1.889 1.889 0 012.889 1h3.778M13.277 14.222L18 9.5l-4.723-4.722M18 9.5H6.667" />
                                         </svg>
                                     </span>
+
                                     Log Out
                                 </div>
+
                                 <span className="_nav_drop_btn_link">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="6" height="10" fill="none" viewBox="0 0 6 10">
                                         <path fill="#112032" opacity=".5" d="M5 5l.354.354L5.707 5l-.353-.354L5 5zM1.354 9.354l4-4-.708-.708-4 4 .708.708zm4-4.708l-4-4-.708.708 4 4 .708-.708z" />

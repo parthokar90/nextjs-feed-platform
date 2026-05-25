@@ -1,7 +1,60 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { login } from "@/services/api/auth/login";
 
 export default function LoginPage() {
+
+    const router = useRouter();
+
+    const [form, setForm] = useState({
+        email: "",
+        password: "",
+    });
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setForm({
+            ...form,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            setLoading(true);
+            setError("");
+
+            const res = await login(form);
+
+            if (res?.success) {
+                router.push("/");
+            }
+
+        } catch (err: any) {
+
+            const status = err?.response?.status;
+
+            if (status === 401) {
+                setError("Invalid email or password");
+            } else if (status === 422) {
+                setError("Validation error");
+            } else {
+                setError("Something went wrong");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <section className="_social_login_wrapper _layout_main_wrapper">
 
@@ -36,7 +89,7 @@ export default function LoginPage() {
                                         className="_left_img"
                                         width={800}
                                         height={600}
-                                        priority       
+                                        priority
                                     />
                                 </div>
                             </div>
@@ -65,9 +118,16 @@ export default function LoginPage() {
                                     Login to your account
                                 </h4>
 
+                                {/* Error */}
+                                {error && (
+                                    <div style={{ color: "red", marginBottom: "10px" }}>
+                                        {error}
+                                    </div>
+                                )}
+
                                 {/* Google Button */}
                                 <button type="button" className="_social_login_content_btn _mar_b40">
-                                    <Image src="/assets/images/google.svg" alt="Google" className="_google_img" width={24} height={24} />
+                                    <Image src="/assets/images/google.svg" alt="Google" width={24} height={24} />
                                     <span>Or sign-in with google</span>
                                 </button>
 
@@ -76,69 +136,41 @@ export default function LoginPage() {
                                 </div>
 
                                 {/* Form */}
-                                <form className="_social_login_form">
+                                <form className="_social_login_form" onSubmit={handleSubmit}>
 
                                     {/* Email */}
                                     <div className="_social_login_form_input _mar_b14">
-                                        <label htmlFor="email" className="_social_login_label _mar_b8">
-                                            Email
-                                        </label>
+                                        <label>Email</label>
                                         <input
                                             type="email"
-                                            id="email"
                                             name="email"
                                             className="form-control _social_login_input"
+                                            value={form.email}
+                                            onChange={handleChange}
+                                            required
                                         />
                                     </div>
 
                                     {/* Password */}
                                     <div className="_social_login_form_input _mar_b14">
-                                        <label htmlFor="password" className="_social_login_label _mar_b8">
-                                            Password
-                                        </label>
+                                        <label>Password</label>
                                         <input
                                             type="password"
-                                            id="password"
                                             name="password"
                                             className="form-control _social_login_input"
+                                            value={form.password}
+                                            onChange={handleChange}
+                                            required
                                         />
-                                    </div>
-
-                                    {/* Remember + Forgot */}
-                                    <div className="row">
-                                        <div className="col-lg-6 col-xl-6 col-md-6 col-sm-12">
-                                            <div className="form-check _social_login_form_check">
-                                                <input
-                                                    className="form-check-input _social_login_form_check_input"
-                                                    type="radio"     
-                                                    id="remember"
-                                                    name="remember"
-                                                    defaultChecked
-                                                />
-                                                <label
-                                                    className="form-check-label _social_login_form_check_label"
-                                                    htmlFor="remember"
-                                                >
-                                                    Remember me
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-lg-6 col-xl-6 col-md-6 col-sm-12">
-                                            <div className="_social_login_form_left">
-                                                <Link href="/auth/forgot-password" className="_social_login_form_left_para">
-                                                    Forgot password?
-                                                </Link>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     {/* Button */}
                                     <div className="_social_login_form_btn _mar_t40 _mar_b60">
-                                        <button type="submit" className="_btn1">
-                                            Login now
+                                        <button type="submit" className="_btn1" disabled={loading}>
+                                            {loading ? "Logging in..." : "Login now"}
                                         </button>
                                     </div>
+
                                 </form>
 
                                 {/* Register link */}
@@ -150,11 +182,14 @@ export default function LoginPage() {
                                         </Link>
                                     </p>
                                 </div>
+
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
+
         </section>
     );
 }
