@@ -9,7 +9,8 @@ import { me } from "@/services/api/auth/me";
 
 interface User {
     id: number;
-    name: string;
+    first_name: string;
+    last_name: string;
     email: string;
 }
 
@@ -26,7 +27,6 @@ export default function UserDropdown() {
             try {
                 const data = await me();
                 setUser(data.data);
-                console.log(data);
             } catch (error) {
                 console.log("Failed to fetch user", error);
             }
@@ -59,7 +59,7 @@ export default function UserDropdown() {
     }, []);
 
     return (
-        <div className="_header_nav_profile" ref={dropdownRef}> {/* ← profileRef ছিল, dropdownRef করো */}
+        <div className="_header_nav_profile" ref={dropdownRef}>
 
             <div className="_header_nav_profile_image">
                 <Image
@@ -72,7 +72,11 @@ export default function UserDropdown() {
             </div>
 
             <div className="_header_nav_dropdown">
-                <p className="_header_nav_para">{user?.name ?? "Loading..."}</p>
+                <p className="_header_nav_para">
+                    {user
+                        ? `${user.first_name} ${user.last_name}`
+                        : "Loading..."}
+                </p>
                 <button
                     type="button"
                     className="_header_nav_dropdown_btn _dropdown_toggle"
@@ -124,7 +128,9 @@ export default function UserDropdown() {
                             />
                         </div>
                         <div className="_nav_profile_dropdown_info_txt">
-                            <h4 className="_nav_dropdown_title">{user?.name ?? "Loading..."}</h4>
+                            <h4 className="_nav_dropdown_title"> {user
+                                ? `${user.first_name} ${user.last_name}`
+                                : "Loading..."}</h4>
                             <Link href="/profile" className="_nav_drop_profile">
                                 View Profile
                             </Link>

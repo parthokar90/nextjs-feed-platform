@@ -10,7 +10,8 @@ export default function RegisterPage() {
     const router = useRouter();
 
     const [form, setForm] = useState({
-        name: "",
+        first_name: "",
+        last_name: "",
         email: "",
         password: "",
         password_confirmation: "",
@@ -147,16 +148,31 @@ export default function RegisterPage() {
                                 {/* FORM */}
                                 <form className="_social_registration_form" onSubmit={handleSubmit}>
 
-                                    {/* Name */}
+                                    {/* First Name */}
                                     <div className="_social_registration_form_input _mar_b14">
                                         <label className="_social_registration_label _mar_b8">
-                                            Name
+                                            First Name <span className="text-danger">*</span>
                                         </label>
                                         <input
                                             type="text"
-                                            name="name"
+                                            name="first_name"
                                             className="form-control _social_registration_input"
-                                            value={form.name}
+                                            value={form.first_name}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* Last Name */}
+                                    <div className="_social_registration_form_input _mar_b14">
+                                        <label className="_social_registration_label _mar_b8">
+                                            Last Name <span className="text-danger">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="last_name"
+                                            className="form-control _social_registration_input"
+                                            value={form.last_name}
                                             onChange={handleChange}
                                             required
                                         />
@@ -165,7 +181,7 @@ export default function RegisterPage() {
                                     {/* Email */}
                                     <div className="_social_registration_form_input _mar_b14">
                                         <label className="_social_registration_label _mar_b8">
-                                            Email
+                                            Email <span className="text-danger">*</span>
                                         </label>
                                         <input
                                             type="email"
@@ -180,7 +196,7 @@ export default function RegisterPage() {
                                     {/* Password */}
                                     <div className="_social_registration_form_input _mar_b14">
                                         <label className="_social_registration_label _mar_b8">
-                                            Password
+                                            Password <span className="text-danger">*</span>
                                         </label>
                                         <input
                                             type="password"
@@ -195,7 +211,7 @@ export default function RegisterPage() {
                                     {/* Repeat Password */}
                                     <div className="_social_registration_form_input _mar_b14">
                                         <label className="_social_registration_label _mar_b8">
-                                            Repeat Password
+                                            Repeat Password <span className="text-danger">*</span>
                                         </label>
                                         <input
                                             type="password"
@@ -233,7 +249,6 @@ export default function RegisterPage() {
                                             {loading ? "Creating..." : "Register"}
                                         </button>
                                     </div>
-
                                 </form>
 
                                 {/* Bottom link */}
@@ -245,10 +260,8 @@ export default function RegisterPage() {
                                         </Link>
                                     </p>
                                 </div>
-
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>

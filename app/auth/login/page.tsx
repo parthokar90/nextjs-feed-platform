@@ -118,12 +118,6 @@ export default function LoginPage() {
                                     Login to your account
                                 </h4>
 
-                                {/* Error */}
-                                {error && (
-                                    <div style={{ color: "red", marginBottom: "10px" }}>
-                                        {error}
-                                    </div>
-                                )}
 
                                 {/* Google Button */}
                                 <button type="button" className="_social_login_content_btn _mar_b40">
@@ -135,12 +129,19 @@ export default function LoginPage() {
                                     <span>Or</span>
                                 </div>
 
+                                {/* Error */}
+                                {error && (
+                                    <div style={{ color: "red", marginBottom: "10px" }}>
+                                        {error}
+                                    </div>
+                                )}
+
                                 {/* Form */}
                                 <form className="_social_login_form" onSubmit={handleSubmit}>
 
                                     {/* Email */}
                                     <div className="_social_login_form_input _mar_b14">
-                                        <label>Email</label>
+                                        <label>Email</label> <span className="text-danger">*</span>
                                         <input
                                             type="email"
                                             name="email"
@@ -153,7 +154,7 @@ export default function LoginPage() {
 
                                     {/* Password */}
                                     <div className="_social_login_form_input _mar_b14">
-                                        <label>Password</label>
+                                        <label>Password</label> <span className="text-danger">*</span>
                                         <input
                                             type="password"
                                             name="password"
