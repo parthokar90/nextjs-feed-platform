@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Feed Platform
 
-## Getting Started
+A modern social feed platform built using Next.js 16, React 19, and scalable frontend architecture.
 
-First, run the development server:
+Designed for real-world large-scale applications with clean component structure, reusable UI, API integration, and production-ready development workflow.
+
+---
+## Tech Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Axios
+- Bootstrap 
+
+---
+
+## Development Tools
+
+- ESLint
+- Docker 
+- Git & GitHub
+
+---
+
+### Feature
+- Modern Feed UI
+- Responsive Design
+- Post Timeline
+- Dropdown Action Menu
+- Comment System UI
+- Reaction System
+- Share Button UI
+- Dynamic Post Rendering
+- Reusable Components
+- API Ready Architecture
+
+---
+
+### Folder Structure
+nextjs-feed-platform/
+│
+├── app/
+├── components/
+├── public/
+├── services/
+├── styles/
+├── .env.local
+
+---
+
+# ⚙️ Installation & Setup
+
+---
+
+## 1 Clone the Repository
+
+Clone the project from GitHub to your local machine.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git@github.com:parthokar90/nextjs-feed-platform.git
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2 Navigate to Project Folder
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Move into the project directory.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd nextjs-feed-platform
+```
 
-## Learn More
+3 Install Dependencies
+```bash
+npm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+4 Environment Variables, Create a .env.local file in the project root directory and add the following variables:
+```bash
+.env.local
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5 Configure Environment File
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+SANCTUM_CSRF_API_URL=http://localhost:8000
+```
 
-## Deploy on Vercel
+6 Run Development Server
+```bash
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+
+
+
+
+
