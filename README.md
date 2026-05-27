@@ -45,7 +45,12 @@ nextjs-feed-platform/
 ├── public/
 ├── services/
 ├── styles/
+│
+├── Dockerfile       
+├── docker-compose.yml 
+├── package.json
 ├── .env.local
+├── next.config.js
 
 ---
 
@@ -53,7 +58,7 @@ nextjs-feed-platform/
 
 ---
 
-## 1 Clone the Repository
+## Clone the Repository
 
 Clone the project from GitHub to your local machine.
 
@@ -61,7 +66,7 @@ Clone the project from GitHub to your local machine.
 git@github.com:parthokar90/nextjs-feed-platform.git
 ```
 
-## 2 Navigate to Project Folder
+## Navigate to Project Folder
 
 Move into the project directory.
 
@@ -69,34 +74,73 @@ Move into the project directory.
 cd nextjs-feed-platform
 ```
 
-3 Install Dependencies
+ Install Dependencies
 ```bash
 npm install
 ```
 
-4 Environment Variables, Create a .env.local file in the project root directory and add the following variables:
+ Environment Variables,Create a .env.local file in the project root directory and add the following variables:
 ```bash
 .env.local
 ```
 
-5 Configure Environment File
+Configure Environment File
 
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 SANCTUM_CSRF_API_URL=http://localhost:8000
 ```
 
-6 Run Development Server
+Run Development Server
 ```bash
 npm run dev
 ```
 
+Open in Browser
 
+```bash
+http://localhost:3000
+```
 
+---
+🐳 Run Project with Docker
 
+This project can be run fully using Docker without installing Node.js locally.
 
+---
+⚙️ Prerequisites
 
+Make sure you have installed:
 
+Docker
+Docker Compose
 
+Check version:
+```bash
+docker -v
+docker compose version
+```
 
+---
+Build & Run Project
+Run the following command from the project root directory:
 
+```bash
+docker compose up --build
+```
+This will:
+
+Build Next.js Docker image
+Install dependencies inside container
+Start development server
+Expose app on port 3000
+
+---
+
+Open in Browser
+
+After successful build, open:
+
+```bash
+http://localhost:3000
+```
