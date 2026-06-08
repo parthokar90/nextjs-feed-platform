@@ -42,7 +42,7 @@ Make sure you have the following installed:
 2. **Clone** your fork locally:
 
 ```bash
-git clone git@github.com:YOUR_USERNAME/nextjs-feed-platform.git
+git clone git@github.com:parthokar90/nextjs-feed-platform.git
 cd nextjs-feed-platform
 ```
 
