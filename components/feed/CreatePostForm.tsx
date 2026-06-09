@@ -3,25 +3,24 @@
 import { useState, useRef } from "react";
 import { createPost } from "@/services/api/feed/post";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function CreatePostForm() {
     const router = useRouter();
     const [title, setTitle] = useState("");
     const [images, setImages] = useState<File[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
     const [isExpanded, setIsExpanded] = useState(false); 
     const [visibility, setVisibility] = useState<"public" | "private">("public");
     const fileRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = async () => {
-        if (!title.trim()) { setError("Post content is required."); return; }
+        if (!title.trim()) { toast.error("Post content is required."); return; }
         setLoading(true);
-        setError("");
         try {
             const formData = new FormData();
             formData.append("title", title);
-            formData.append("visibility", visibility); 
+            formData.append("visibility", visibility);
             images.forEach((img) => formData.append("images[]", img));
             await createPost(formData);
             setTitle("");
@@ -29,9 +28,10 @@ export default function CreatePostForm() {
             setVisibility("public");
             setIsExpanded(false);
             if (fileRef.current) fileRef.current.value = "";
+            toast.success("Post created!");
             router.refresh();
         } catch (err: any) {
-            setError(err?.response?.data?.message || "Failed to create post.");
+            toast.error(err?.response?.data?.message || "Failed to create post.");
         } finally {
             setLoading(false);
         }
@@ -104,8 +104,6 @@ export default function CreatePostForm() {
                     </button>
                 </div>
             )}
-
-            {error && <p style={{ color: "red", fontSize: 13, marginTop: 6 }}>{error}</p>}
 
             <input
                 type="file"
