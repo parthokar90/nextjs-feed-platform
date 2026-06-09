@@ -1,4 +1,5 @@
 import { Poppins } from 'next/font/google';
+import ToasterProvider from '@/components/ui/ToasterProvider';
 
 // Bootstrap
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -33,7 +34,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={poppins.className}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ToasterProvider />
+      </body>
     </html>
   );
 }
