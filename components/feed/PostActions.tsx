@@ -1,7 +1,9 @@
-"use client";  
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
+import toast from "react-hot-toast";
+import { toggleLike } from "@/services/api/feed/interactions";
 
 type PostActionsProps = {
     postId: number;
@@ -14,9 +16,18 @@ export default function PostActions({ postId, likes, comments }: PostActionsProp
     const [likeCount, setLikeCount] = useState(likes);
     const [showComments, setShowComments] = useState(false);
 
-    const handleLike = () => {
-        setLiked(!liked);
-        setLikeCount(liked ? likeCount - 1 : likeCount + 1);
+    const handleLike = async () => {
+        const newLiked = !liked;
+        setLiked(newLiked);
+        setLikeCount(newLiked ? likeCount + 1 : likeCount - 1);
+        try {
+            await toggleLike("posts", postId);
+            toast.success(newLiked ? "Post liked!" : "Like removed.");
+        } catch (err: any) {
+            setLiked(!newLiked);
+            setLikeCount(newLiked ? likeCount : likeCount + 1);
+            toast.error(err?.response?.data?.message || "Failed to update like.");
+        }
     };
 
     return (
