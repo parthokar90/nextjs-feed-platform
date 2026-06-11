@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toggleLike, addComment, deleteComment, addReply, deleteReply, getLikes } from "@/services/api/feed/interactions";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 type User = { id: number; name: string; avatar: string | null };
 type Reply = { id: number; body: string; likes_count: number; is_liked: boolean; is_owner: boolean; user: User; created_at: string };
@@ -43,8 +44,10 @@ export default function PostCard({ post: initialPost }: { post: Post }) {
         setPost(p => ({ ...p, is_liked: !p.is_liked, likes_count: p.is_liked ? p.likes_count - 1 : p.likes_count + 1 }));
         try {
             await toggleLike("posts", post.id);
-        } catch {
+            toast.success(post.is_liked ? "Like removed." : "Post liked!");
+        } catch (err: any) {
             setPost(p => ({ ...p, is_liked: prev.liked, likes_count: prev.count }));
+            toast.error(err?.response?.data?.message || "Failed to update like.");
         }
     };
 
@@ -58,7 +61,7 @@ export default function PostCard({ post: initialPost }: { post: Post }) {
             ),
         }));
         try { await toggleLike("comments", commentId); }
-        catch { router.refresh(); }
+        catch (err: any) { toast.error(err?.response?.data?.message || "Failed to update like."); router.refresh(); }
     };
 
     const handleReplyLike = async (commentId: number, replyId: number) => {
@@ -71,7 +74,7 @@ export default function PostCard({ post: initialPost }: { post: Post }) {
             ),
         }));
         try { await toggleLike("replies", replyId); }
-        catch { router.refresh(); }
+        catch (err: any) { toast.error(err?.response?.data?.message || "Failed to update like."); router.refresh(); }
     };
 
     // ── Who liked ──────────────────────────────────────────────
@@ -86,7 +89,7 @@ export default function PostCard({ post: initialPost }: { post: Post }) {
     // ── Comment handlers ───────────────────────────────────────
 
     const handleAddComment = async () => {
-        if (!commentText.trim()) return;
+        if (!commentText.trim()) { toast.error("Comment cannot be empty."); return; }
         try {
             const data = await addComment(post.id, commentText);
             setPost(p => ({
@@ -95,7 +98,8 @@ export default function PostCard({ post: initialPost }: { post: Post }) {
                 comments_count: p.comments_count + 1,
             }));
             setCommentText("");
-        } catch { router.refresh(); }
+            toast.success("Comment added!");
+        } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to add comment."); router.refresh(); }
     };
 
     const handleDeleteComment = async (commentId: number) => {
@@ -106,7 +110,8 @@ export default function PostCard({ post: initialPost }: { post: Post }) {
                 comments: p.comments.filter(c => c.id !== commentId),
                 comments_count: p.comments_count - 1,
             }));
-        } catch { router.refresh(); }
+            toast.success("Comment deleted.");
+        } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to delete comment."); router.refresh(); }
     };
 
     // ── Reply handlers ─────────────────────────────────────────
@@ -125,7 +130,8 @@ export default function PostCard({ post: initialPost }: { post: Post }) {
                 ),
             }));
             setReplyText(prev => ({ ...prev, [commentId]: "" }));
-        } catch { router.refresh(); }
+            toast.success("Reply added!");
+        } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to add reply."); router.refresh(); }
     };
 
     const handleDeleteReply = async (commentId: number, replyId: number) => {
@@ -139,7 +145,7 @@ export default function PostCard({ post: initialPost }: { post: Post }) {
                         : c
                 ),
             }));
-        } catch { router.refresh(); }
+        } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to delete reply."); router.refresh(); }
     };
 
     return (
