@@ -1,295 +1,227 @@
 "use client";
-import { useState, useRef} from "react";
-import Image from "next/image";
-import UserDropdown from "@/components/ui/UserDropdown";
 
-// Navbar Component 
+import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+
 export default function Navbar() {
-  const [showNotif, setShowNotif] = useState(false);
-  const [showNotifOptions, setShowNotifOptions] = useState(false);
-  const [activeNotifTab, setActiveNotifTab] = useState("all");
+    // States to handle dropdown and mobile menu visibility
+    const [isOpen, setIsOpen] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
+    
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const notifRef = useRef(null);
+    // Close the dropdown menu when clicking outside of it
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
-  const notifications = [
-    { type: "person", img: "/assets/images/friend-req.png", text: <><span className="_notify_txt_link">Steve Jobs</span> posted a link in your timeline.</>, time: "42 minutes ago" },
-    { type: "admin", img: "/assets/images/profile-1.png", text: <>An admin changed the name of the group <span className="_notify_txt_link">Freelancer usa</span> to <span className="_notify_txt_link">Freelancer usa</span></>, time: "42 minutes ago" },
-    { type: "person", img: "/assets/images/friend-req.png", text: <><span className="_notify_txt_link">Steve Jobs</span> posted a link in your timeline.</>, time: "42 minutes ago" },
-    { type: "admin", img: "/assets/images/profile-1.png", text: <>An admin changed the name of the group <span className="_notify_txt_link">Freelancer usa</span> to <span className="_notify_txt_link">Freelancer usa</span></>, time: "42 minutes ago" },
-    { type: "person", img: "/assets/images/friend-req.png", text: <><span className="_notify_txt_link">Steve Jobs</span> posted a link in your timeline.</>, time: "42 minutes ago" },
-    { type: "admin", img: "/assets/images/profile-1.png", text: <>An admin changed the name of the group <span className="_notify_txt_link">Freelancer usa</span> to <span className="_notify_txt_link">Freelancer usa</span></>, time: "42 minutes ago" },
-    { type: "person", img: "/assets/images/friend-req.png", text: <><span className="_notify_txt_link">Steve Jobs</span> posted a link in your timeline.</>, time: "42 minutes ago" },
-    { type: "admin", img: "/assets/images/profile-1.png", text: <>An admin changed the name of the group <span className="_notify_txt_link">Freelancer usa</span></>, time: "42 minutes ago" },
-  ];
+    return (
+        <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-16 items-center">
 
-  return (
-    <>
-      {/* Desktop Menu Start */}
-      <nav className="navbar navbar-expand-lg navbar-light _header_nav _padd_t10">
-        <div className="container _custom_container">
+                    {/* Left Section: Logo & Search Bar */}
+                    <div className="flex items-center flex-1 max-w-xl">
+                        <Link href="/" className="flex-shrink-0 flex items-center">
+                            <img src="assets/images/logo.svg" alt="Buddy Script" className="h-8 w-auto" />
+                        </Link>
 
-          {/* Logo */}
-          <div className="_logo_wrap">
-            <a className="navbar-brand" href="/feed">
-              <Image
-                src="/assets/images/logo.svg"
-                alt="Logo"
-                width={120}
-                height={36}
-                className="_nav_logo"
-              />
-            </a>
-          </div>
+                        <div className="ml-6 flex-1 hidden sm:block max-w-xs">
+                            <div className="relative rounded-xl">
+                                <input type="text"
+                                    className="block w-full pl-4 pr-10 py-2 bg-gray-50 border border-gray-200 text-sm rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    placeholder="input search text" />
+                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-          {/* Mobile toggler */}
-          <button
-            className="navbar-toggler bg-light"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
+                    {/* Right Section: Desktop Navigation Items */}
+                    <div className="hidden lg:flex items-center space-x-4">
 
-          <div className="collapse navbar-collapse" id="navbarSupportedContent">
+                        <Link href="/"
+                            className="p-2.5 text-blue-600 bg-blue-50/70 rounded-xl hover:bg-blue-50/90 transition-colors relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="21" fill="none" viewBox="0 0 18 21"
+                                className="h-5 w-5">
+                                <path stroke="currentColor" strokeWidth="1.6" strokeOpacity="0.8"
+                                    d="M1 9.924c0-1.552 0-2.328.314-3.01.313-.682.902-1.187 2.08-2.196l1.143-.98C6.667 1.913 7.732 1 9 1c1.268 0 2.333.913 4.463 2.738l1.142.98c1.179 1.01 1.768 1.514 2.081 2.196.314.682.314 1.458.314 3.01v4.846c0 2.155 0 3.233-.67 3.902-.669.67-1.746.67-3.901.67H5.57c-2.155 0-3.232 0-3.902-.67C1 18.002 1 16.925 1 14.77V9.924z" />
+                                <path stroke="currentColor" strokeOpacity="0.8" strokeLinecap="round"
+                                    strokeLinejoin="round" strokeWidth="1.6"
+                                    d="M11.857 19.341v-5.857a1 1 0 00-1-1H7.143a1 1 0 00-1 1v5.857" />
+                            </svg>
+                        </Link>
 
-            {/* Search Form */}
-            <div className="_header_form ms-auto">
-              <div className="_header_form_grp">
-                <svg
-                  className="_header_form_svg"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="17"
-                  height="17"
-                  fill="none"
-                  viewBox="0 0 17 17"
-                >
-                  <circle cx="7" cy="7" r="6" stroke="#666" />
-                  <path stroke="#666" strokeLinecap="round" d="M16 16l-3-3" />
-                </svg>
-                <input
-                  className="form-control me-2 _inpt1"
-                  type="search"
-                  placeholder="input search text"
-                  aria-label="Search"
-                />
-              </div>
+                        <Link href="/friend-requests"
+                            className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 rounded-xl transition-colors relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                            </svg>
+                            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-bold text-white ring-2 ring-white shadow-sm">2</span>
+                        </Link>
+
+                        <div className="relative">
+                            <button id="_notify_btn"
+                                className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 rounded-xl transition-colors relative focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-bold text-white ring-2 ring-white shadow-sm">2</span>
+                            </button>
+                        </div>
+
+                        <Link href="/chat"
+                            className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 rounded-xl transition-colors relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-bold text-white ring-2 ring-white shadow-sm">2</span>
+                        </Link>
+
+                        {/* Profile Dropdown Container */}
+                        <div className="relative border-l border-gray-200 pl-4 ml-2" ref={dropdownRef}>
+                            {/* Toggle Button for Profile Dropdown */}
+                            <button 
+                                onClick={() => setIsOpen(!isOpen)}
+                                className="flex items-center space-x-2 group focus:outline-none bg-transparent border-none cursor-pointer"
+                            >
+                                <img className="h-9 w-9 rounded-full object-cover ring-2 ring-transparent group-hover:ring-blue-500/20 transition-all"
+                                    src="assets/images/profile.png" alt="Avatar" />
+                                <div className="flex flex-col text-left">
+                                    <span className="text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors leading-none">
+                                        Dylan Field
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 mt-1">@dylanfield</span>
+                                </div>
+                                <svg className={`h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-transform ml-1 ${isOpen ? "rotate-180" : ""}`}
+                                    fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            {/* Dropdown Menu Items (Conditionally Rendered) */}
+                            {isOpen && (
+                                <div className="absolute right-0 mt-3 w-52 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden transform transition-all py-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                                    <div className="px-4 py-2 border-b border-gray-50 flex items-center space-x-2.5 mb-1 bg-gray-50/30">
+                                        <img className="h-7 w-7 rounded-full object-cover" src="assets/images/profile.png" alt="" />
+                                        <div className="min-w-0">
+                                            <h4 className="text-xs font-bold text-gray-800 truncate">Dylan Field</h4>
+                                        </div>
+                                    </div>
+
+                                    <Link href="/profile" onClick={() => setIsOpen(false)}
+                                        className="flex items-center space-x-2.5 px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 transition-all no-underline">
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <span className="font-medium">Profile</span>
+                                    </Link>
+
+                                    <Link href="/settings" onClick={() => setIsOpen(false)}
+                                        className="flex items-center space-x-2.5 px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 transition-all no-underline">
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 013 0z" />
+                                        </svg>
+                                        <span className="font-medium">Settings</span>
+                                    </Link>
+
+                                    <Link href="/help" onClick={() => setIsOpen(false)}
+                                        className="flex items-center space-x-2.5 px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 transition-all no-underline">
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                        <span className="font-medium">Help and Support</span>
+                                    </Link>
+
+                                    <hr className="border-gray-100 my-1" />
+
+                                    <Link href="/login" onClick={() => setIsOpen(false)}
+                                        className="flex items-center space-x-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-all no-underline">
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                        <span className="font-semibold">Logout</span>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
+
+                    {/* Mobile Section: Search and Menu Toggles */}
+                    <div className="flex items-center lg:hidden space-x-2">
+                        <button className="p-2 text-gray-500 rounded-xl hover:bg-gray-100 sm:hidden focus:outline-none">
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+
+                        {/* Toggle Button for Mobile Menu */}
+                        <button 
+                            onClick={() => setIsMobileOpen(!isMobileOpen)}
+                            className="p-2 text-gray-500 hover:text-gray-700 rounded-xl hover:bg-gray-100 focus:outline-none transition-colors"
+                        >
+                            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                    d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            {/* Nav Icons */}
-            <ul className="navbar-nav mb-2 mb-lg-0 _header_nav_list ms-auto _mar_r8">
-
-              {/* Home */}
-              <li className="nav-item _header_nav_item">
-                <a
-                  className="nav-link _header_nav_link_active _header_nav_link"
-                  aria-current="page"
-                  href="/feed"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="21"
-                    fill="none"
-                    viewBox="0 0 18 21"
-                  >
-                    <path
-                      className="_home_active"
-                      stroke="#000"
-                      strokeWidth="1.5"
-                      strokeOpacity=".6"
-                      d="M1 9.924c0-1.552 0-2.328.314-3.01.313-.682.902-1.187 2.08-2.196l1.143-.98C6.667 1.913 7.732 1 9 1c1.268 0 2.333.913 4.463 2.738l1.142.98c1.179 1.01 1.768 1.514 2.081 2.196.314.682.314 1.458.314 3.01v4.846c0 2.155 0 3.233-.67 3.902-.669.67-1.746.67-3.901.67H5.57c-2.155 0-3.232 0-3.902-.67C1 18.002 1 16.925 1 14.77V9.924z"
-                    />
-                    <path
-                      className="_home_active"
-                      stroke="#000"
-                      strokeOpacity=".6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.5"
-                      d="M11.857 19.341v-5.857a1 1 0 00-1-1H7.143a1 1 0 00-1 1v5.857"
-                    />
-                  </svg>
-                </a>
-              </li>
-
-              {/* Friends */}
-              <li className="nav-item _header_nav_item">
-                <a
-                  className="nav-link _header_nav_link"
-                  aria-current="page"
-                  href="/friend-request"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="26"
-                    height="20"
-                    fill="none"
-                    viewBox="0 0 26 20"
-                  >
-                    <path
-                      fill="#000"
-                      fillOpacity=".6"
-                      fillRule="evenodd"
-                      d="M12.79 12.15h.429c2.268.015 7.45.243 7.45 3.732 0 3.466-5.002 3.692-7.415 3.707h-.894c-2.268-.015-7.452-.243-7.452-3.727 0-3.47 5.184-3.697 7.452-3.711l.297-.001h.132zm0 1.75c-2.792 0-6.12.34-6.12 1.962 0 1.585 3.13 1.955 5.864 1.976l.255.002c2.792 0 6.118-.34 6.118-1.958 0-1.638-3.326-1.982-6.118-1.982zm9.343-2.224c2.846.424 3.444 1.751 3.444 2.79 0 .636-.251 1.794-1.931 2.43a.882.882 0 01-1.137-.506.873.873 0 01.51-1.13c.796-.3.796-.633.796-.793 0-.511-.654-.868-1.944-1.06a.878.878 0 01-.741-.996.886.886 0 011.003-.735zm-17.685.735a.878.878 0 01-.742.997c-1.29.19-1.944.548-1.944 1.059 0 .16 0 .491.798.793a.873.873 0 01-.314 1.693.897.897 0 01-.313-.057C.25 16.259 0 15.1 0 14.466c0-1.037.598-2.366 3.446-2.79.485-.06.929.257 1.002.735zM12.789 0c2.96 0 5.368 2.392 5.368 5.33 0 2.94-2.407 5.331-5.368 5.331h-.031a5.329 5.329 0 01-3.782-1.57 5.253 5.253 0 01-1.553-3.764C7.423 2.392 9.83 0 12.789 0zm0 1.75c-1.987 0-3.604 1.607-3.604 3.58a3.526 3.526 0 001.04 2.527 3.58 3.58 0 002.535 1.054l.03.875v-.875c1.987 0 3.605-1.605 3.605-3.58S14.777 1.75 12.789 1.75zm7.27-.607a4.222 4.222 0 013.566 4.172c-.004 2.094-1.58 3.89-3.665 4.181a.88.88 0 01-.994-.745.875.875 0 01.75-.989 2.494 2.494 0 002.147-2.45 2.473 2.473 0 00-2.09-2.443.876.876 0 01-.726-1.005.881.881 0 011.013-.721zm-13.528.72a.876.876 0 01-.726 1.006 2.474 2.474 0 00-2.09 2.446A2.493 2.493 0 005.86 7.762a.875.875 0 11-.243 1.734c-2.085-.29-3.66-2.087-3.664-4.179 0-2.082 1.5-3.837 3.566-4.174a.876.876 0 011.012.72z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </a>
-              </li>
-
-              {/* Notification Bell */}
-              <li className="nav-item _header_nav_item" ref={notifRef}>
-                <span
-                  id="_notify_btn"
-                  className="nav-link _header_nav_link _header_notify_btn"
-                  onClick={() => {
-                    setShowNotif((prev) => !prev);
-                  }}
-                  style={{ cursor: "pointer", position: "relative" }}
-                >
-                  {/* Bell SVG */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="22"
-                    fill="none"
-                    viewBox="0 0 20 22"
-                  >
-                    <path
-                      fill="#000"
-                      fillOpacity=".6"
-                      fillRule="evenodd"
-                      d="M7.547 19.55c.533.59 1.218.915 1.93.915.714 0 1.403-.324 1.938-.916a.777.777 0 011.09-.056c.318.284.344.77.058 1.084-.832.917-1.927 1.423-3.086 1.423h-.002c-1.155-.001-2.248-.506-3.077-1.424a.762.762 0 01.057-1.083.774.774 0 011.092.057zM9.527 0c4.58 0 7.657 3.543 7.657 6.85 0 1.702.436 2.424.899 3.19.457.754.976 1.612.976 3.233-.36 4.14-4.713 4.478-9.531 4.478-4.818 0-9.172-.337-9.528-4.413-.003-1.686.515-2.544.973-3.299l.161-.27c.398-.679.737-1.417.737-2.918C1.871 3.543 4.948 0 9.528 0zm0 1.535c-3.6 0-6.11 2.802-6.11 5.316 0 2.127-.595 3.11-1.12 3.978-.422.697-.755 1.247-.755 2.444.173 1.93 1.455 2.944 7.986 2.944 6.494 0 7.817-1.06 7.988-3.01-.003-1.13-.336-1.681-.757-2.378-.526-.868-1.12-1.851-1.12-3.978 0-2.514-2.51-5.316-6.111-5.316z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="_counting">6</span>
-
-                  {/* Notification Dropdown */}
-                  {showNotif && (
-                    <div
-                      id="_notify_drop"
-                      className="_notification_dropdown"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {/* Header */}
-                      <div className="_notifications_content">
-                        <h4 className="_notifications_content_title">Notifications</h4>
-                        <div className="_notification_box_right">
-                          <button
-                            type="button"
-                            className="_notification_box_right_link"
-                            onClick={() => setShowNotifOptions((p) => !p)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="4"
-                              height="17"
-                              fill="none"
-                              viewBox="0 0 4 17"
-                            >
-                              <circle cx="2" cy="2" r="2" fill="#C4C4C4" />
-                              <circle cx="2" cy="8" r="2" fill="#C4C4C4" />
-                              <circle cx="2" cy="15" r="2" fill="#C4C4C4" />
-                            </svg>
-                          </button>
-                          {showNotifOptions && (
-                            <div className="_notifications_drop_right">
-                              <ul className="_notification_list">
-                                <li className="_notification_item">
-                                  <span className="_notification_link">Mark as all read</span>
-                                </li>
-                                <li className="_notification_item">
-                                  <span className="_notification_link">Notifications settings</span>
-                                </li>
-                                <li className="_notification_item">
-                                  <span className="_notification_link">Open Notifications</span>
-                                </li>
-                              </ul>
-                            </div>
-                          )}
+            {/* Mobile Menu Panel (Conditionally Rendered) */}
+            {isMobileOpen && (
+                <div className="lg:hidden border-t border-gray-100 bg-white px-4 pt-2 pb-5 space-y-4 shadow-inner">
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                        <img className="h-11 w-11 rounded-full" src="assets/images/profile.png" alt="Avatar" />
+                        <div className="flex-1">
+                            <span className="block text-sm font-semibold text-gray-800">Dylan Field</span>
+                            <span className="block text-xs text-gray-400">@dylanfield</span>
                         </div>
-                      </div>
-
-                      {/* Tabs */}
-                      <div className="_notifications_drop_box">
-                        <div className="_notifications_drop_btn_grp">
-                          <button
-                            className={activeNotifTab === "all" ? "_notifications_btn_link" : "_notifications_btn_link1"}
-                            onClick={() => setActiveNotifTab("all")}
-                          >
-                            All
-                          </button>
-                          <button
-                            className={activeNotifTab === "unread" ? "_notifications_btn_link" : "_notifications_btn_link1"}
-                            onClick={() => setActiveNotifTab("unread")}
-                          >
-                            Unread
-                          </button>
-                        </div>
-
-                        {/* Notification List */}
-                        <div className="_notifications_all">
-                          {notifications.map((notif, index) => (
-                            <div className="_notification_box" key={index}>
-                              <div className="_notification_image">
-                                <Image
-                                  src={notif.img}
-                                  alt="Notification"
-                                  width={40}
-                                  height={40}
-                                  className="_notify_img"
-                                />
-                              </div>
-                              <div className="_notification_txt">
-                                <p className="_notification_para">{notif.text}</p>
-                                <div className="_nitification_time">
-                                  <span>{notif.time}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                        <Link href="/profile" onClick={() => setIsMobileOpen(false)} className="text-blue-600 text-xs font-semibold hover:underline">
+                            View Profile
+                        </Link>
                     </div>
-                  )}
-                </span>
-              </li>
 
-              {/* Chat */}
-              <li className="nav-item _header_nav_item">
-                <a className="nav-link _header_nav_link" aria-current="page" href="/chat">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="23"
-                    height="22"
-                    fill="none"
-                    viewBox="0 0 23 22"
-                  >
-                    <path
-                      fill="#000"
-                      fillOpacity=".6"
-                      fillRule="evenodd"
-                      d="M11.43 0c2.96 0 5.743 1.143 7.833 3.22 4.32 4.29 4.32 11.271 0 15.562C17.145 20.886 14.293 22 11.405 22c-1.575 0-3.16-.33-4.643-1.012-.437-.174-.847-.338-1.14-.338-.338.002-.793.158-1.232.308-.9.307-2.022.69-2.852-.131-.826-.822-.445-1.932-.138-2.826.152-.44.307-.895.307-1.239 0-.282-.137-.642-.347-1.161C-.57 11.46.322 6.47 3.596 3.22A11.04 11.04 0 0111.43 0zm0 1.535A9.5 9.5 0 004.69 4.307a9.463 9.463 0 00-1.91 10.686c.241.592.474 1.17.474 1.77 0 .598-.207 1.201-.39 1.733-.15.439-.378 1.1-.231 1.245.143.147.813-.085 1.255-.235.53-.18 1.133-.387 1.73-.391.597 0 1.161.225 1.758.463 3.655 1.679 7.98.915 10.796-1.881 3.716-3.693 3.716-9.7 0-13.391a9.5 9.5 0 00-6.74-2.77zm4.068 8.867c.57 0 1.03.458 1.03 1.024 0 .566-.46 1.023-1.03 1.023a1.023 1.023 0 11-.01-2.047h.01zm-4.131 0c.568 0 1.03.458 1.03 1.024 0 .566-.462 1.023-1.03 1.023a1.03 1.03 0 01-1.035-1.024c0-.566.455-1.023 1.025-1.023h.01zm-4.132 0c.568 0 1.03.458 1.03 1.024 0 .566-.462 1.023-1.03 1.023a1.022 1.022 0 11-.01-2.047h.01z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="_counting">2</span>
-                </a>
-              </li>
-            </ul>
-
-            {/* Profile Section */}
-             <UserDropdown/>
-            {/* Profile Section End */}
-          </div>
-        </div>
-      </nav>
-      {/* Desktop Menu End */}
-    </>
-  );
+                    <div className="grid grid-cols-2 gap-3">
+                        <Link href="/" onClick={() => setIsMobileOpen(false)}
+                            className="flex items-center justify-center space-x-2 p-3 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium no-underline">
+                            <span>Home Feed</span>
+                        </Link>
+                        <Link href="/friend-requests" onClick={() => setIsMobileOpen(false)}
+                            className="flex items-center justify-center space-x-2 p-3 bg-gray-50 text-gray-700 rounded-xl text-sm font-medium no-underline">
+                            <span>Requests (3)</span>
+                        </Link>
+                        <Link href="/settings" onClick={() => setIsMobileOpen(false)}
+                            className="flex items-center justify-center space-x-2 p-3 bg-gray-50 text-gray-700 rounded-xl text-sm font-medium no-underline">
+                            <span>Settings</span>
+                        </Link>
+                        <Link href="/login" onClick={() => setIsMobileOpen(false)}
+                            className="flex items-center justify-center space-x-2 p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium no-underline">
+                            <span>Logout</span>
+                        </Link>
+                    </div>
+                </div>
+            )}
+        </nav>
+    );
 }

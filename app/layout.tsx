@@ -1,39 +1,17 @@
-import { Poppins } from 'next/font/google';
-
-// Bootstrap
-import 'bootstrap/dist/css/bootstrap.min.css';
-
-// Global CSS
-import './globals.css';
-
-// Main CSS
-import '../styles/main.css';
-
-// Responsive CSS
-import '../styles/responsive.css';
-
-const poppins = Poppins({
-  weight: ['100', '300', '400', '500', '600', '700', '800'],
-  subsets: ['latin'],
-  display: 'swap',
-});
+// src/app/layout.js
+import "./globals.css";
 
 export const metadata = {
-  title: 'Buddy Script',
-  description: 'Social Feed Platform',
-  icons: {
-    icon: '/assets/images/logo-copy.svg',   // ← favicon
-  },
+  title: "Social Media Feed",
+  description: "Built with Next.js and Tailwind CSS",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={poppins.className}>
-      <body>{children}</body>
+    <html lang="en">
+      <body className="bg-gray-50 min-h-screen text-gray-800 antialiased">
+        {children}
+      </body>
     </html>
   );
 }

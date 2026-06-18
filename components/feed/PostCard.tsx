@@ -1,399 +1,180 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { toggleLike, addComment, deleteComment, addReply, deleteReply, getLikes } from "@/services/api/feed/interactions";
-import { useRouter } from "next/navigation";
+import React from "react";
+import Link from "next/link";
 
-type User = { id: number; name: string; avatar: string | null };
-type Reply = { id: number; body: string; likes_count: number; is_liked: boolean; is_owner: boolean; user: User; created_at: string };
-type Comment = { id: number; body: string; likes_count: number; replies_count: number; is_liked: boolean; is_owner: boolean; user: User; created_at: string; replies: Reply[] };
-type Post = {
-    id: number; title: string; visibility: string; likes_count: number; comments_count: number;
-    is_liked: boolean; is_owner: boolean; user: User; created_at: string;
-    images: { id: number; url: string }[];
-    comments: Comment[];
-};
-
-export default function PostCard({ post: initialPost }: { post: Post }) {
-    const router = useRouter();
-    const [post, setPost] = useState(initialPost);
-    const [openDropdown, setOpenDropdown] = useState(false);
-    const [showLikers, setShowLikers] = useState(false);
-    const [likers, setLikers] = useState<User[]>([]);
-    const [commentText, setCommentText] = useState("");
-    const [replyText, setReplyText] = useState<Record<number, string>>({});
-    const [showReplies, setShowReplies] = useState<Record<number, boolean>>({});
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setOpenDropdown(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    // ── Like handlers ──────────────────────────────────────────
-
-    const handlePostLike = async () => {
-        const prev = { liked: post.is_liked, count: post.likes_count };
-        // Optimistic update
-        setPost(p => ({ ...p, is_liked: !p.is_liked, likes_count: p.is_liked ? p.likes_count - 1 : p.likes_count + 1 }));
-        try {
-            await toggleLike("posts", post.id);
-        } catch {
-            setPost(p => ({ ...p, is_liked: prev.liked, likes_count: prev.count }));
-        }
-    };
-
-    const handleCommentLike = async (commentId: number) => {
-        setPost(p => ({
-            ...p,
-            comments: p.comments.map(c =>
-                c.id === commentId
-                    ? { ...c, is_liked: !c.is_liked, likes_count: c.is_liked ? c.likes_count - 1 : c.likes_count + 1 }
-                    : c
-            ),
-        }));
-        try { await toggleLike("comments", commentId); }
-        catch { router.refresh(); }
-    };
-
-    const handleReplyLike = async (commentId: number, replyId: number) => {
-        setPost(p => ({
-            ...p,
-            comments: p.comments.map(c =>
-                c.id === commentId
-                    ? { ...c, replies: c.replies.map(r => r.id === replyId ? { ...r, is_liked: !r.is_liked, likes_count: r.is_liked ? r.likes_count - 1 : r.likes_count + 1 } : r) }
-                    : c
-            ),
-        }));
-        try { await toggleLike("replies", replyId); }
-        catch { router.refresh(); }
-    };
-
-    // ── Who liked ──────────────────────────────────────────────
-
-    const handleShowLikers = async () => {
-        if (showLikers) { setShowLikers(false); return; }
-        const data = await getLikes("posts", post.id);
-        setLikers(data.data);
-        setShowLikers(true);
-    };
-
-    // ── Comment handlers ───────────────────────────────────────
-
-    const handleAddComment = async () => {
-        if (!commentText.trim()) return;
-        try {
-            const data = await addComment(post.id, commentText);
-            setPost(p => ({
-                ...p,
-                comments: [data.data, ...p.comments],
-                comments_count: p.comments_count + 1,
-            }));
-            setCommentText("");
-        } catch { router.refresh(); }
-    };
-
-    const handleDeleteComment = async (commentId: number) => {
-        try {
-            await deleteComment(commentId);
-            setPost(p => ({
-                ...p,
-                comments: p.comments.filter(c => c.id !== commentId),
-                comments_count: p.comments_count - 1,
-            }));
-        } catch { router.refresh(); }
-    };
-
-    // ── Reply handlers ─────────────────────────────────────────
-
-    const handleAddReply = async (commentId: number) => {
-        const body = replyText[commentId]?.trim();
-        if (!body) return;
-        try {
-            const data = await addReply(commentId, body);
-            setPost(p => ({
-                ...p,
-                comments: p.comments.map(c =>
-                    c.id === commentId
-                        ? { ...c, replies: [...(c.replies || []), data.data], replies_count: c.replies_count + 1 }
-                        : c
-                ),
-            }));
-            setReplyText(prev => ({ ...prev, [commentId]: "" }));
-        } catch { router.refresh(); }
-    };
-
-    const handleDeleteReply = async (commentId: number, replyId: number) => {
-        try {
-            await deleteReply(replyId);
-            setPost(p => ({
-                ...p,
-                comments: p.comments.map(c =>
-                    c.id === commentId
-                        ? { ...c, replies: c.replies.filter(r => r.id !== replyId), replies_count: c.replies_count - 1 }
-                        : c
-                ),
-            }));
-        } catch { router.refresh(); }
-    };
-
+export default function PostCard() {
     return (
-        <div className="_feed_inner_timeline_post_area _b_radious6 _padd_b24 _padd_t24 _mar_b16">
-            <div className="_feed_inner_timeline_content _padd_r24 _padd_l24">
-                {/* Post Header */}
-                <div className="_feed_inner_timeline_post_top">
-                    <div className="_feed_inner_timeline_post_box">
-                        <div className="_feed_inner_timeline_post_box_image">
-                            <img src={post.user?.avatar ?? "/assets/images/post_img.png"} alt={post.user?.name} className="_post_img" />
-                        </div>
-                        <div className="_feed_inner_timeline_post_box_txt">
-                            <h4 className="_feed_inner_timeline_post_box_title">{post.user?.name}</h4>
-                            <p className="_feed_inner_timeline_post_box_para">
-                                {post.created_at} · <a href="#0">{post.visibility}</a>
-                            </p>
-                        </div>
+        <div className="mb-6 bg-white rounded-lg p-4 sm:p-5 shadow-sm border border-gray-100">
+            {/* Post Header */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                    <div className="mr-3 flex-shrink-0">
+                        <Link href="/profile/partho">
+                            <img src="/assets/images/profile.png" alt="User Image" className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover" />
+                        </Link>
                     </div>
-
-                    {/* Dropdown */}
-                    <div ref={dropdownRef} className="_feed_inner_timeline_post_box_dropdown">
-                        <div className="_feed_timeline_post_dropdown">
-                            <button className="_feed_timeline_post_dropdown_link" onClick={(e) => { e.stopPropagation(); setOpenDropdown(p => !p); }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="4" height="17" fill="none" viewBox="0 0 4 17">
-                                    <circle cx="2" cy="2" r="2" fill="#C4C4C4" />
-                                    <circle cx="2" cy="8" r="2" fill="#C4C4C4" />
-                                    <circle cx="2" cy="15" r="2" fill="#C4C4C4" />
-                                </svg>
-                            </button>
-                        </div>
-                        {openDropdown && (
-                            <div className="_feed_timeline_dropdown _timeline_dropdown">
-                                <ul className="_feed_timeline_dropdown_list">
-                                    <li className="_feed_timeline_dropdown_item">
-                                        <a href="#0" className="_feed_timeline_dropdown_link">
-                                            <span><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 18 18"><path stroke="#1890FF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" d="M14.25 15.75L9 12l-5.25 3.75v-12a1.5 1.5 0 011.5-1.5h7.5a1.5 1.5 0 011.5 1.5v12z" /></svg></span>
-                                            Save Post
-                                        </a>
-                                    </li>
-                                    {post.is_owner && (
-                                        <li className="_feed_timeline_dropdown_item">
-                                            <a href="#0" className="_feed_timeline_dropdown_link">
-                                                <span><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 18 18"><path stroke="#1890FF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" d="M2.25 4.5h13.5M6 4.5V3a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0112 3v1.5m2.25 0V15a1.5 1.5 0 01-1.5 1.5h-7.5a1.5 1.5 0 01-1.5-1.5V4.5h10.5z" /></svg></span>
-                                                Delete Post
-                                            </a>
-                                        </li>
-                                    )}
-                                </ul>
-                            </div>
-                        )}
+                    <div>
+                        <Link href="/profile/partho" className="no-underline">
+                            <h4 className="text-sm sm:text-base font-semibold m-0 text-gray-800 hover:text-blue-600">Partho Protim</h4>
+                        </Link>
+                        <p className="text-xs text-gray-500 m-0 mt-0.5">2 hours ago · 🌐 Public</p>
                     </div>
                 </div>
 
-                {/* Post Content */}
-                <h4 className="_feed_inner_timeline_post_title">{post.title}</h4>
-                {post.images?.length > 0 && (
-                    <div className="_feed_inner_timeline_image">
-                        <img src={post.images[0].url} alt="post" className="_time_img" />
-                    </div>
-                )}
-            </div>
-
-            {/* Reacts Count */}
-            <div className="_feed_inner_timeline_total_reacts _padd_r24 _padd_l24 _mar_b26">
-                <div className="_feed_inner_timeline_total_reacts_image" style={{ cursor: "pointer" }} onClick={handleShowLikers}>
-                    <img src="assets/images/react_img1.png" alt="" className="_react_img1" />
-                    <img src="assets/images/react_img2.png" alt="" className="_react_img" />
-                    <p className="_feed_inner_timeline_total_reacts_para">{post.likes_count}</p>
-                </div>
-                <div className="_feed_inner_timeline_total_reacts_txt">
-                    <p className="_feed_inner_timeline_total_reacts_para1">
-                        <a href="#0"><span>{post.comments_count}</span> Comment</a>
-                    </p>
+                {/* Triple Dot Options */}
+                <div className="relative">
+                    <button type="button" className="p-1 bg-transparent border-none text-gray-400 hover:text-gray-600 cursor-pointer rounded-full hover:bg-gray-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="1" />
+                            <circle cx="19" cy="12" r="1" />
+                            <circle cx="5" cy="12" r="1" />
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            {/* Who liked — toggle */}
-            {showLikers && likers.length > 0 && (
-                <div className="_padd_r24 _padd_l24" style={{ marginBottom: 12 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Liked by:</p>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {likers.map(u => (
-                            <div key={u.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <img src={u.avatar ?? "/assets/images/post_img.png"} alt={u.name} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
-                                <span style={{ fontSize: 13 }}>{u.name}</span>
-                            </div>
-                        ))}
-                    </div>
+            {/* Post Content */}
+            <div className="mb-4">
+                <p className="text-sm text-gray-700 m-0 mb-3 leading-relaxed">
+                    Tailwind CSS দিয়ে সম্পূর্ণ ফিড সেকশন, কমেন্ট, রিপ্লাই বক্স এবং ডিলিট অপশন রেসপন্সিভ করে ডিজাইন করলাম। কোনো ইনলাইন সিএসেস ছাড়াই কোড এখন একদম ক্লিন! 🚀 #tailwind #clean-code
+                </p>
+                <div className="rounded-lg overflow-hidden mt-3">
+                    <img src="/assets/images/header.png" alt="Post Attachment" className="w-full block object-cover max-h-[380px]" />
                 </div>
-            )}
+            </div>
 
-            {/* Reaction Buttons */}
-            <div className="_feed_inner_timeline_reaction">
-                {/* Like button — active state */}
-                <button
-                    className={`_feed_inner_timeline_reaction_emoji _feed_reaction ${post.is_liked ? "_feed_reaction_active" : ""}`}
-                    onClick={handlePostLike}
-                >
-                    <span className="_feed_inner_timeline_reaction_link"><span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 19 19">
-                            <path fill="#FFCC4D" d="M9.5 19a9.5 9.5 0 100-19 9.5 9.5 0 000 19z" />
-                            <path fill="#664500" d="M9.5 11.083c-1.912 0-3.181-.222-4.75-.527-.358-.07-1.056 0-1.056 1.055 0 2.111 2.425 4.75 5.806 4.75 3.38 0 5.805-2.639 5.805-4.75 0-1.055-.697-1.125-1.055-1.055-1.57.305-2.838.527-4.75.527z" />
-                            <path fill="#fff" d="M4.75 11.611s1.583.528 4.75.528 4.75-.528 4.75-.528-1.056 2.111-4.75 2.111-4.75-2.11-4.75-2.11z" />
-                            <path fill="#664500" d="M6.333 8.972c.729 0 1.32-.827 1.32-1.847s-.591-1.847-1.32-1.847c-.729 0-1.32.827-1.32 1.847s.591 1.847 1.32 1.847zM12.667 8.972c.729 0 1.32-.827 1.32-1.847s-.591-1.847-1.32-1.847c-.729 0-1.32.827-1.32 1.847s.591 1.847 1.32 1.847z" />
-                        </svg>
-                        {post.is_liked ? "Liked" : "Like"}
-                    </span></span>
+            {/* Post Stats */}
+            <div className="flex items-center justify-between text-xs text-gray-500 border-b border-gray-100 pb-3 mb-2">
+                <div className="flex items-center gap-1">
+                    <div className="flex items-center -space-x-1">
+                        <span className="w-5 h-5 rounded-full flex items-center justify-center text-white bg-blue-500 ring-2 ring-white text-[10px]">👍</span>
+                        <span className="w-5 h-5 rounded-full flex items-center justify-center text-white bg-red-500 ring-2 ring-white text-[10px]">❤️</span>
+                    </div>
+                    <span className="font-medium text-gray-600 pl-1">Amara and 42 others</span>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3 font-medium text-gray-500">
+                    <button type="button" className="bg-transparent border-none p-0 text-gray-500 hover:underline cursor-pointer">2 Comments</button>
+                    <span>•</span>
+                    <button type="button" className="bg-transparent border-none p-0 text-gray-500 hover:underline cursor-pointer">1 Share</button>
+                </div>
+            </div>
+
+            {/* Action Buttons (Like, Comment, Share) */}
+            <div className="flex justify-between items-center border-b border-gray-100 pb-1 mb-4">
+                <button type="button" className="flex-1 py-2 text-gray-600 hover:bg-gray-50 rounded-md text-xs sm:text-sm font-semibold bg-transparent border-none flex items-center justify-center gap-2 transition-colors cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z" />
+                        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                    </svg>
+                    <span>Like</span>
                 </button>
-
-                <button className="_feed_inner_timeline_reaction_comment _feed_reaction">
-                    <span className="_feed_inner_timeline_reaction_link"><span>
-                        <svg className="_reaction_svg" xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 21 21">
-                            <path stroke="#000" d="M1 10.5c0-.464 0-.696.009-.893A9 9 0 019.607 1.01C9.804 1 10.036 1 10.5 1v0c.464 0 .696 0 .893.009a9 9 0 018.598 8.598c.009.197.009.429.009.893v6.046c0 1.36 0 2.041-.317 2.535a2 2 0 01-.602.602c-.494.317-1.174.317-2.535.317H10.5c-.464 0-.696 0-.893-.009a9 9 0 01-8.598-8.598C1 11.196 1 10.964 1 10.5v0z" />
-                            <path stroke="#000" strokeLinecap="round" strokeLinejoin="round" d="M6.938 9.313h7.125M10.5 14.063h3.563" />
-                        </svg>
-                        Comment
-                    </span></span>
+                <button type="button" className="flex-1 py-2 text-gray-600 hover:bg-gray-50 rounded-md text-xs sm:text-sm font-semibold bg-transparent border-none flex items-center justify-center gap-2 transition-colors cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <span>Comment</span>
                 </button>
-
-                <button className="_feed_inner_timeline_reaction_share _feed_reaction">
-                    <span className="_feed_inner_timeline_reaction_link"><span>
-                        <svg className="_reaction_svg" xmlns="http://www.w3.org/2000/svg" width="24" height="21" fill="none" viewBox="0 0 24 21">
-                            <path stroke="#000" strokeLinejoin="round" d="M23 10.5L12.917 1v5.429C3.267 6.429 1 13.258 1 20c2.785-3.52 5.248-5.429 11.917-5.429V20L23 10.5z" />
-                        </svg>
-                        Share
-                    </span></span>
+                <button type="button" className="flex-1 py-2 text-gray-600 hover:bg-gray-50 rounded-md text-xs sm:text-sm font-semibold bg-transparent border-none flex items-center justify-center gap-2 transition-colors cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                    </svg>
+                    <span>Share</span>
                 </button>
             </div>
 
-            {/* Comment Input */}
-            <div className="_feed_inner_timeline_cooment_area">
-                <div className="_feed_inner_comment_box">
-                    <div className="_feed_inner_comment_box_form">
-                        <div className="_feed_inner_comment_box_content">
-                            <div className="_feed_inner_comment_box_content_image">
-                                <img src="assets/images/comment_img.png" alt="" className="_comment_img" />
+            {/* Comments Section */}
+            <div className="space-y-4">
+                {/* Single Comment */}
+                <div className="flex items-start gap-2.5">
+                    <img src="/assets/images/profile.png" alt="Commenter" className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                    <div className="flex-grow group">
+                        <div className="flex items-start justify-between bg-gray-100 rounded-2xl px-3 py-2 max-w-full sm:max-w-[90%] inline-block">
+                            <div>
+                                <Link href="/profile/amara" className="no-underline text-xs font-bold text-gray-800 hover:underline">Amara</Link>
+                                <p className="text-xs sm:text-sm text-gray-700 m-0 mt-0.5">ভাইয়া ডিজাইনটা অনেক জোস হয়েছে! রেসপন্সিভও পারফেক্ট।</p>
                             </div>
-                            <div className="_feed_inner_comment_box_content_txt">
-                                <textarea
-                                    className="form-control _comment_textarea"
-                                    placeholder="Write a comment"
-                                    value={commentText}
-                                    onChange={(e) => setCommentText(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
-                                />
+                            <div className="ml-4 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button type="button" title="Delete Comment" className="p-1 text-gray-400 hover:text-red-500 bg-transparent border-none cursor-pointer rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                        <line x1="10" y1="11" x2="10" y2="17" />
+                                        <line x1="14" y1="11" x2="14" y2="17" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
+
+                        {/* Comment Actions */}
+                        <div className="flex items-center gap-3 pl-2 mt-1 text-[11px] text-gray-500 font-semibold">
+                            <button type="button" className="bg-transparent border-none p-0 text-gray-500 hover:text-blue-600 cursor-pointer">Like</button>
+                            <button type="button" className="bg-transparent border-none p-0 text-gray-500 hover:text-blue-600 cursor-pointer">Reply</button>
+                            <span>1h ago</span>
+                        </div>
+
+                        {/* Nested Reply */}
+                        <div className="mt-3 flex items-start gap-2 pl-4 border-l-2 border-gray-200">
+                            <img src="/assets/images/profile.png" alt="Replier" className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                            <div className="flex-grow group/reply">
+                                <div className="flex items-start justify-between bg-gray-50 rounded-2xl px-3 py-1.5 max-w-full inline-block">
+                                    <div>
+                                        <Link href="/profile/partho" className="no-underline text-xs font-bold text-gray-800 hover:underline">Partho Protim</Link>
+                                        <p className="text-xs sm:text-sm text-gray-700 m-0 mt-0.5">
+                                            <span className="text-blue-600 font-medium">@Amara</span> অনেক ধন্যবাদ! কাজ আরও বাকি আছে।
+                                        </p>
+                                    </div>
+                                    <div className="ml-4 flex items-center opacity-0 group-hover/reply:opacity-100 transition-opacity">
+                                        <button type="button" title="Delete Reply" className="p-1 text-gray-400 hover:text-red-500 bg-transparent border-none cursor-pointer rounded">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="3 6 5 6 21 6" />
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 pl-2 mt-0.5 text-[10px] text-gray-500 font-semibold">
+                                    <button type="button" className="bg-transparent border-none p-0 text-gray-500 hover:text-blue-600 cursor-pointer">Like</button>
+                                    <button type="button" className="bg-transparent border-none p-0 text-gray-500 hover:text-blue-600 cursor-pointer">Reply</button>
+                                    <span>45m ago</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Write Reply Box */}
+                        <div className="mt-3 pl-4 flex items-center gap-2">
+                            <img src="/assets/images/profile.png" alt="User" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                            <div className="flex-grow flex items-center bg-gray-50 rounded-full px-3 py-1 border border-gray-200">
+                                <input type="text" placeholder="Write a reply..." className="w-full bg-transparent text-xs text-gray-700 border-none outline-none focus:ring-0 py-0.5" />
+                                <button type="button" className="bg-transparent border-none p-1 text-blue-600 hover:text-blue-800 cursor-pointer flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="22" y1="2" x2="11" y2="13" />
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-            </div>
 
-            {/* Comments List */}
-            <div className="_timline_comment_main">
-                {post.comments?.map(comment => (
-                    <div key={comment.id} className="_comment_main" style={{ marginBottom: 16 }}>
-                        <div className="_comment_image">
-                            <img src={comment.user?.avatar ?? "/assets/images/txt_img.png"} alt="" className="_comment_img1" />
-                        </div>
-                        <div className="_comment_area">
-                            <div className="_comment_details">
-                                <div className="_comment_details_top">
-                                    <div className="_comment_name">
-                                        <h4 className="_comment_name_title">{comment.user?.name}</h4>
-                                    </div>
-                                </div>
-                                <div className="_comment_status">
-                                    <p className="_comment_status_text"><span>{comment.body}</span></p>
-                                </div>
-
-                                {/* Comment reactions */}
-                                <div className="_comment_reply">
-                                    <div className="_comment_reply_num">
-                                        <ul className="_comment_reply_list">
-                                            <li>
-                                                <span
-                                                    style={{ cursor: "pointer", color: comment.is_liked ? "#377DFF" : undefined }}
-                                                    onClick={() => handleCommentLike(comment.id)}
-                                                >
-                                                    Like ({comment.likes_count})
-                                                </span>
-                                            </li>
-                                            <li>
-                                                <span
-                                                    style={{ cursor: "pointer" }}
-                                                    onClick={() => setShowReplies(p => ({ ...p, [comment.id]: !p[comment.id] }))}
-                                                >
-                                                    Reply ({comment.replies_count})
-                                                </span>
-                                            </li>
-                                            {comment.is_owner && (
-                                                <li>
-                                                    <span style={{ cursor: "pointer", color: "red" }} onClick={() => handleDeleteComment(comment.id)}>
-                                                        Delete
-                                                    </span>
-                                                </li>
-                                            )}
-                                            <li><span className="_time_link">{comment.created_at}</span></li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                {/* Replies */}
-                                {showReplies[comment.id] && (
-                                    <div style={{ marginLeft: 24, marginTop: 8 }}>
-                                        {/* Reply input */}
-                                        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                                            <textarea
-                                                className="form-control _comment_textarea"
-                                                placeholder="Write a reply..."
-                                                value={replyText[comment.id] ?? ""}
-                                                onChange={(e) => setReplyText(p => ({ ...p, [comment.id]: e.target.value }))}
-                                                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddReply(comment.id); } }}
-                                                style={{ flex: 1 }}
-                                            />
-                                        </div>
-
-                                        {/* Reply list */}
-                                        {comment.replies?.map(reply => (
-                                            <div key={reply.id} className="_comment_main" style={{ marginBottom: 8 }}>
-                                                <div className="_comment_image">
-                                                    <img src={reply.user?.avatar ?? "/assets/images/txt_img.png"} alt="" className="_comment_img1" />
-                                                </div>
-                                                <div className="_comment_area">
-                                                    <div className="_comment_details">
-                                                        <h4 className="_comment_name_title" style={{ fontSize: 13 }}>{reply.user?.name}</h4>
-                                                        <p className="_comment_status_text"><span>{reply.body}</span></p>
-                                                        <ul className="_comment_reply_list">
-                                                            <li>
-                                                                <span
-                                                                    style={{ cursor: "pointer", color: reply.is_liked ? "#377DFF" : undefined }}
-                                                                    onClick={() => handleReplyLike(comment.id, reply.id)}
-                                                                >
-                                                                    Like ({reply.likes_count})
-                                                                </span>
-                                                            </li>
-                                                            {reply.is_owner && (
-                                                                <li>
-                                                                    <span style={{ cursor: "pointer", color: "red" }} onClick={() => handleDeleteReply(comment.id, reply.id)}>
-                                                                        Delete
-                                                                    </span>
-                                                                </li>
-                                                            )}
-                                                            <li><span className="_time_link">{reply.created_at}</span></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                {/* Main Comment Box */}
+                <div className="flex items-center gap-2.5 pt-2 border-t border-gray-100">
+                    <img src="/assets/images/profile.png" alt="User" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    <div className="flex-grow flex items-center bg-gray-100 rounded-full px-3.5 py-2">
+                        <input type="text" placeholder="Write a comment..." className="w-full bg-transparent text-xs sm:text-sm text-gray-700 border-none outline-none focus:ring-0 py-0" />
+                        <button type="button" className="bg-transparent border-none p-0.5 text-blue-600 hover:text-blue-800 cursor-pointer flex items-center justify-center ml-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13" />
+                                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                            </svg>
+                        </button>
                     </div>
-                ))}
+                </div>
             </div>
         </div>
     );
