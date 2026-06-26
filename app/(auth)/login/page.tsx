@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <h2 className="text-xl font-bold text-gray-800 mb-2">Log In</h2>
-      
+
       {/* Email Input */}
       <div>
         <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email Address</label>
