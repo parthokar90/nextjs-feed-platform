@@ -40,7 +40,7 @@ export default function PostCard() {
                     Tailwind CSS দিয়ে সম্পূর্ণ ফিড সেকশন, কমেন্ট, রিপ্লাই বক্স এবং ডিলিট অপশন রেসপন্সিভ করে ডিজাইন করলাম। কোনো ইনলাইন সিএসেস ছাড়াই কোড এখন একদম ক্লিন!
                 </p>
                 <div className="rounded-lg overflow-hidden mt-3">
-                    <img src="/assets/images/profile.png" alt="Post Attachment" className="w-full block object-cover max-h-[380px]" />
+                    <img src="assets/images/feed_event1.png" alt="Post Attachment" className="w-full block object-cover max-h-[380px]" />
                 </div>
             </div>
 
