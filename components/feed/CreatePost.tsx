@@ -1,8 +1,73 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef, ChangeEvent } from "react";
+import { createPostAction } from "@/app/actions/post/postAction"; // Adjust import path according to your folder structure
 
 export default function CreatePost() {
+    // States for holding form values and loading state
+    const [title, setTitle] = useState<string>("");
+    const [visibility, setVisibility] = useState<"public" | "private">("public");
+    const [attachment, setAttachment] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    // Reference to trigger the hidden file input
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Trigger file selection window
+    const handlePhotoButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    // Handle file changes and generate real-time image preview
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAttachment(file);
+            setPreviewUrl(URL.createObjectURL(file)); // Generate temporary local URL for preview
+        }
+    };
+
+    // Remove selected image before submitting
+    const handleRemoveImage = () => {
+        setAttachment(null);
+        setPreviewUrl(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Reset input field value
+        }
+    };
+
+    // Submit the post via Laravel API Action
+    const handlePostSubmit = async () => {
+        if (!title.trim() && !attachment) return; // Prevent submitting completely empty posts
+
+        setLoading(true);
+
+        // Prepare FormData object to pack files and text data
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("visibility", visibility);
+        if (attachment) {
+            formData.append("attachment", attachment);
+        }
+
+        const result = await createPostAction(formData);
+        setLoading(false);
+
+        if (result.success) {
+            // Reset state values on successful post creation
+            setTitle("");
+            setAttachment(null);
+            setPreviewUrl(null);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+            alert("Post created successfully!"); // Replace with custom toast notification later
+        } else {
+            alert(result.error);
+        }
+    };
+
     return (
         <div className="mb-5 bg-white rounded-lg p-5 shadow-[0px_2px_8px_rgba(0,0,0,0.05)]">
             {/* User Info & Privacy Dropdown */}
@@ -18,7 +83,11 @@ export default function CreatePost() {
                     <div>
                         <h4 className="text-sm font-semibold m-0 text-gray-800">Partho Protim</h4>
                         <div className="inline-block relative mt-1">
-                            <select className="block appearance-none w-full bg-gray-100 text-gray-600 text-xs py-1 px-2 pr-6 rounded-md border-none focus:outline-none cursor-pointer font-medium">
+                            <select 
+                                value={visibility}
+                                onChange={(e) => setVisibility(e.target.value as "public" | "private")}
+                                className="block appearance-none w-full bg-gray-100 text-gray-600 text-xs py-1 px-2 pr-6 rounded-md border-none focus:outline-none cursor-pointer font-medium"
+                            >
                                 <option value="public">🌐 Public</option>
                                 <option value="private">🔒 Private</option>
                             </select>
@@ -36,17 +105,52 @@ export default function CreatePost() {
             <div className="mb-4">
                 <textarea
                     rows={3}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     placeholder="What's on your mind, Partho?"
                     className="w-full text-sm text-gray-700 bg-[#f0f2f5] rounded-lg p-3 border-none focus:outline-none focus:ring-1 focus:ring-blue-100 resize-none"
                 />
             </div>
+
+            {/* Hidden File Input for uploading images */}
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                accept="image/png, image/jpeg, image/jpg, image/webp" 
+                className="hidden" 
+            />
+
+            {/* Selected Image Preview with Remove Button */}
+            {previewUrl && (
+                <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-100">
+                    <img 
+                        src={previewUrl} 
+                        alt="Selected Upload Preview" 
+                        className="max-h-60 w-full object-cover" 
+                    />
+                    <button 
+                        type="button" 
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 bg-gray-950/70 hover:bg-red-600 text-white font-bold p-1 rounded-full w-8 h-8 flex items-center justify-center transition-colors border-none cursor-pointer text-xs"
+                        title="Remove Image"
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
 
             <hr className="border-gray-100 my-3" />
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                    <button type="button" className="flex items-center text-gray-500 p-1 bg-transparent border-none text-xs sm:text-sm font-medium gap-1.5 hover:text-green-600 transition-colors cursor-pointer">
+                    {/* Trigger File input on Photo button click */}
+                    <button 
+                        type="button" 
+                        onClick={handlePhotoButtonClick}
+                        className="flex items-center text-gray-500 p-1 bg-transparent border-none text-xs sm:text-sm font-medium gap-1.5 hover:text-green-600 transition-colors cursor-pointer"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#24b354" strokeWidth="2" className="sm:w-[18px] sm:h-[18px] w-4 h-4">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                             <circle cx="8.5" cy="8.5" r="1.5" />
@@ -86,8 +190,15 @@ export default function CreatePost() {
                 </div>
 
                 <div className="text-right">
-                    <button type="button" className="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-full border-none transition-colors cursor-pointer">
-                        Post
+                    <button 
+                        type="button" 
+                        onClick={handlePostSubmit}
+                        disabled={loading || (!title.trim() && !attachment)}
+                        className={`w-full sm:w-auto px-6 py-2 text-white font-medium text-sm rounded-full border-none transition-colors cursor-pointer ${
+                            loading || (!title.trim() && !attachment) ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                        }`}
+                    >
+                        {loading ? "Posting..." : "Post"}
                     </button>
                 </div>
             </div>
