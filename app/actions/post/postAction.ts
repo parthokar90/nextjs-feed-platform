@@ -104,8 +104,8 @@ export async function fetchPostsAction(cursor: string | null = null) {
          */
         return {
             success: true,
-            data: result.data.data, // The actual posts array
-            nextCursor: result.data.next_cursor, // Reference for the next page
+            data: result.data.data, 
+            nextCursor: result.data.next_cursor, 
             prevCursor: result.data.prev_cursor,
         };
 

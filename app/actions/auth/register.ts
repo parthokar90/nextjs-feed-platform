@@ -1,7 +1,6 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation"; 
 
 export async function registerUser(prevState: any, formData: FormData) {
     const first_name = formData.get("first_name") as string; 
@@ -11,7 +10,6 @@ export async function registerUser(prevState: any, formData: FormData) {
     const password_confirmation = formData.get("password_confirmation") as string;
 
     const currentInputs = { first_name, last_name, email };
-    let isSuccessful = false; 
 
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, {
@@ -21,11 +19,11 @@ export async function registerUser(prevState: any, formData: FormData) {
                 "Accept": "application/json",
             },
             body: JSON.stringify({
-                first_name: first_name,
-                last_name: last_name,
-                email: email,
-                password: password,
-                password_confirmation: password_confirmation,
+                first_name,
+                last_name,
+                email,
+                password,
+                password_confirmation,
             }),
         });
 
@@ -50,7 +48,13 @@ export async function registerUser(prevState: any, formData: FormData) {
                 path: "/",
             });
             
-            isSuccessful = true; 
+            return {
+                success: true,
+                message: "Registration successful!",
+                user: result.data.user || { first_name, last_name, email }, 
+                errors: null,
+                inputs: null
+            };
         }
 
     } catch (error: any) {
@@ -60,9 +64,5 @@ export async function registerUser(prevState: any, formData: FormData) {
             errors: null,
             inputs: currentInputs
         };
-    }
-
-    if (isSuccessful) {
-        redirect("/");
     }
 }

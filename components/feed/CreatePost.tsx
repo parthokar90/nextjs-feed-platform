@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useRef, ChangeEvent } from "react";
-import { createPostAction } from "@/app/actions/post/postAction"; // Adjust import path according to your folder structure
+import { createPostAction } from "@/app/actions/post/postAction"; 
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/redux/store";
 
 export default function CreatePost() {
     // States for holding form values and loading state
@@ -10,6 +12,7 @@ export default function CreatePost() {
     const [attachment, setAttachment] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const user = useSelector((state: RootState) => state.auth.user);
 
     // Reference to trigger the hidden file input
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,13 +36,13 @@ export default function CreatePost() {
         setAttachment(null);
         setPreviewUrl(null);
         if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset input field value
+            fileInputRef.current.value = ""; 
         }
     };
 
     // Submit the post via Laravel API Action
     const handlePostSubmit = async () => {
-        if (!title.trim() && !attachment) return; // Prevent submitting completely empty posts
+        if (!title.trim() && !attachment) return; 
 
         setLoading(true);
 
@@ -62,7 +65,7 @@ export default function CreatePost() {
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
-            alert("Post created successfully!"); // Replace with custom toast notification later
+            alert("Post created successfully!"); 
         } else {
             alert(result.error);
         }
@@ -81,7 +84,7 @@ export default function CreatePost() {
                         />
                     </div>
                     <div>
-                        <h4 className="text-sm font-semibold m-0 text-gray-800">Partho Protim</h4>
+                        <h4 className="text-sm font-semibold m-0 text-gray-800">{user ? `${user.first_name} ${user.last_name}` : "Guest User"}</h4>
                         <div className="inline-block relative mt-1">
                             <select 
                                 value={visibility}

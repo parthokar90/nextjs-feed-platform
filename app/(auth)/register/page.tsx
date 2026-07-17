@@ -1,23 +1,38 @@
 "use client";
 
-import React, { useActionState } from "react";
+import React, { useActionState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { setAuthUser } from "@/app/redux/authSlice";
 import { registerUser } from "@/app/actions/auth/register";
 
 export default function RegisterPage() {
-    
     const [state, formAction, isPending] = useActionState(registerUser, null);
+    const router = useRouter();
+    const dispatch = useDispatch();
+
+
+    useEffect(() => {
+        if (state?.success && state?.user) {
+            
+            dispatch(setAuthUser(state.user));
+            
+            router.push("/");
+        }
+    }, [state, dispatch, router]);
 
     return (
         <form action={formAction} className="space-y-4 max-w-md mx-auto p-6 bg-white rounded-xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold text-gray-800 mb-2">Create Account</h2>
 
-            {/* Render global error or success alerts */}
+            {/* Render global error alerts */}
             {state && !state.success && (
                 <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
                     {state.message}
                 </div>
             )}
+            
             {state && state.success && (
                 <div className="p-3 text-sm text-green-600 bg-green-50 rounded-lg border border-green-100">
                     {state.message}
@@ -35,7 +50,6 @@ export default function RegisterPage() {
                     defaultValue={state?.inputs?.first_name || ""}
                     className="w-full text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 />
-                {/* Specific backend validation error for first_name */}
                 {state?.errors?.first_name && (
                     <p className="text-xs text-red-500 mt-1">{state.errors.first_name[0]}</p>
                 )}
@@ -52,7 +66,6 @@ export default function RegisterPage() {
                     defaultValue={state?.inputs?.last_name || ""}
                     className="w-full text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 />
-                {/* Specific backend validation error for last_name */}
                 {state?.errors?.last_name && (
                     <p className="text-xs text-red-500 mt-1">{state.errors.last_name[0]}</p>
                 )}
@@ -69,7 +82,6 @@ export default function RegisterPage() {
                     defaultValue={state?.inputs?.email || ""}
                     className="w-full text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 />
-                {/* Map specific backend validation errors for email */}
                 {state?.errors?.email && (
                     <p className="text-xs text-red-500 mt-1">{state.errors.email[0]}</p>
                 )}
@@ -85,7 +97,6 @@ export default function RegisterPage() {
                     required
                     className="w-full text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 />
-                {/* Map specific backend validation errors for password */}
                 {state?.errors?.password && (
                     <p className="text-xs text-red-500 mt-1">{state.errors.password[0]}</p>
                 )}
@@ -116,7 +127,7 @@ export default function RegisterPage() {
                 </label>
             </div>
 
-            {/* Submit Button with Dynamic Loading State */}
+            {/* Submit Button */}
             <button
                 type="submit"
                 disabled={isPending}
